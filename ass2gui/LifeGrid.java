@@ -1,6 +1,6 @@
 /** CS1801 
  * Assignment 2: Conway's game of life: the GUI version
- * Liz Jenkins, December 2015
+ * Liz Jenkins, December 2015 - January 2016
  */
 import java.util.Scanner;
 import java.io.File;
@@ -14,24 +14,26 @@ public class LifeGrid
   private static int x, y;  	// dimensions of 2d array
   private static int gen = 0; 	// count the generations
   
-  // possible input filenames as Strings:
+  // possible input filenames as Strings (comment out those not required):
 
-  private static String ipFile = "blinker.txt"; 	// 5 x 5
+//  private static String ipFile = "blinker.txt"; 	// 5 x 5
 //  private static String ipFile = "toad.txt";		// 5 x 5
-//  private static String ipFile = "glider.txt";	// 5 x 5
+  private static String ipFile = "glider.txt";		// 5 x 5
 //  private static String ipFile = "glider2.txt";	// 5 x 5
 //  private static String ipFile = "block.txt";		// 5 x 5
 //  private static String ipFile = "testCode.txt"; 	// 5 x 10
 
-  // we know the grid dimensions
+  // we know the grid dimensions (make this a parameter?)
   private static int xdim = 5;
   private static int ydim = 5; // change to 10 for test code
   
-  // constructors: 
+  // There are 2 constructors with the following parameters: 
   // x denotes the no. of rows (or the no. of arrays in our index array), from 1 to x
   // y denotes the no. of cols (or the no. of elements in each 1d array), from 1 to y
   // filename (if provided)is where to find the starting pattern
-  LifeGrid(int x, int y)      // declare a grid but don't fill it
+  
+  // sub-constructor - declare a grid but don't fill it
+  LifeGrid(int x, int y)
   {
     // define the 2d grid
     grid = new int[x][y];
@@ -40,11 +42,12 @@ public class LifeGrid
     this.x = x;
     this.y = y;
   }
+  
   // main constructor
   LifeGrid(int x, int y, String filename)throws 
         FileNotFoundException, StringIndexOutOfBoundsException
   {
-    // define the 2d grid
+    // define the 2d grid >>>>>>>>>>>>>> make this recursive!?
     grid = new int[x][y];
     
     // set dimensions on the object instance
@@ -67,8 +70,6 @@ public class LifeGrid
         {
           try
           {
-//            System.out.println("Value read from cell at row "+i+
-//                " and col "+j+" is '"+str.charAt(j)+"'.");
             // test for a live cell
             if (str.charAt(j) == '*')
             {
@@ -87,6 +88,7 @@ public class LifeGrid
         } // end for
       } // end for
     } // end try
+    
     // check for errors finding file
     catch (FileNotFoundException fileNFE)
     {
@@ -194,12 +196,11 @@ public class LifeGrid
       
       // create an empty grid object for next generation
       LifeGrid bGrid = new LifeGrid(xdim, ydim);
-//      bGrid.show();
 
       // manage swapping A <-> B
       boolean swap = true;
       
-      // arbitrary limit to number of generations
+      // arbitrary limit to number of generations >>>>>>> parameterise or wait for steady state?!
       int genCount = 0;
       while (genCount < 10)
       {
