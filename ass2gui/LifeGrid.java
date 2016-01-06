@@ -18,7 +18,7 @@ public class LifeGrid
 
 //  private static String ipFile = "blinker.txt"; 	// 5 x 5
 //  private static String ipFile = "toad.txt";		// 5 x 5
-  private static String ipFile = "glider.txt";		// 5 x 5
+  private static String ipFile = "glider.txt";	// 5 x 5
 //  private static String ipFile = "glider2.txt";	// 5 x 5
 //  private static String ipFile = "block.txt";		// 5 x 5
 //  private static String ipFile = "testCode.txt"; 	// 5 x 10
@@ -47,9 +47,8 @@ public class LifeGrid
   LifeGrid(int x, int y, String filename)throws 
         FileNotFoundException, StringIndexOutOfBoundsException
   {
-    // define the 2d grid >>>>>>>>>>>>>> make this recursive!?
+    // define the 2d grid (repetitive, but recursion not allowed in constructors)
     grid = new int[x][y];
-    
     // set dimensions on the object instance
     this.x = x;
     this.y = y;
@@ -155,33 +154,49 @@ public class LifeGrid
   {
     int count = 0;
     // Assume Moore's definition of what is a neighbour
-    // Assume our grid is surrounded by empty cells, rather than toroidal (for now);
-    // (I think generation 10 of the glider shows edge effects?).
-    // Assume we can't use what Wikipedia calls the scientific observer's viewpoint (more efficient?)
+    // Assume our grid is a torus (right joins to left, top joins to bottom)
+    
+    // define variables for modulus of cell position
+    int xbase = xdim;
+    int ybase = ydim;
+    int xmod = 0;
+    int ymod = 0;
+
+    // loop over rows around cell
     for (int i = x - 1; i <= x + 1; i++)
     {
-      // don't count off the left or the right
-      if (i >= 0 && i < getWidth())
+      // rewrite the loop variable using modulus to keep it in the grid
+      if (i < 0)
       {
-//        System.out.println("i = "+i+", x = "+x+" and array rows = "+this.x);
-        for (int j = y - 1; j <= y + 1; j++)
+        // i is negative, add the modulus to the base
+        xmod = xbase + i % xbase;
+      } else {
+        // i is positive, the modulus alone is what we want
+        xmod = i % xbase;
+      }
+      
+      // loop over columns within the row
+      for (int j = y - 1; j <= y + 1; j++)
+      {
+        // rewrite the loop variable using modulus to keep it in the grid
+        if (j < 0)
         {
-          // don't count off the top or the bottom
-          if (j >= 0 && j < getHeight())
-          {
-//            System.out.println("j = "+j+", y = "+y+" and array cols = "+this.y);
-            // don't count cell at (x,y)
-            if (i != x || j != y)
-            {
-              // ok to count this one!
-                count += getCell(i, j);
-//              System.out.println("Counted! "+count);
-            }
-          }  	// end top/bottom check
-        } 	// end for y
-      } 	// end left/right check
+          // j is negative, add the modulus to the base
+          ymod = ybase + j % ybase;
+        } else {
+          // j is positive, the modulus alone is what we want
+          ymod = j % ybase;
+        }
+     
+        // don't count cell at (x,y)
+        if (xmod != x || ymod != y)
+        {
+          // ok to count this one!
+            count += getCell(xmod, ymod);
+        }
+      } 	// end for y
     } 		// end for x
-    
+
     return count; 
   } // end method
   
@@ -202,7 +217,7 @@ public class LifeGrid
       
       // arbitrary limit to number of generations >>>>>>> parameterise or wait for steady state?!
       int genCount = 0;
-      while (genCount < 10)
+      while (genCount < 25)
       {
         // work out the next generation and put it in the other grid
         for (int i = 0; i < xdim; i++)
@@ -245,7 +260,7 @@ public class LifeGrid
   {
     // return the next generation for this cell
     int total = 0;
-    // using observer's algorithm after all
+    // using what Wikipedia calls the scientific observer's viewpoint algorithm 
     total = getCell(x, y) + neighbours(x, y);
     
     switch(total)
