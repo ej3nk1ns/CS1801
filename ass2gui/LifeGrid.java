@@ -13,20 +13,7 @@ public class LifeGrid
   
   private static int x, y;  	// dimensions of 2d array
   private static int gen = 0; 	// count the generations
-  
-  // possible input filenames as Strings (comment out those not required):
-
-//  private static String ipFile = "blinker.txt"; 	// 5 x 5
-//  private static String ipFile = "toad.txt";		// 5 x 5
-  private static String ipFile = "glider.txt";	// 5 x 5
-//  private static String ipFile = "glider2.txt";	// 5 x 5
-//  private static String ipFile = "block.txt";		// 5 x 5
-//  private static String ipFile = "testCode.txt"; 	// 5 x 10
-
-  // we know the grid dimensions (make this a parameter?)
-  private static int xdim = 5;
-  private static int ydim = 5; // change to 10 for test code
-  
+ 
   // There are 2 constructors with the following parameters: 
   // x denotes the no. of rows (or the no. of arrays in our index array), from 1 to x
   // y denotes the no. of cols (or the no. of elements in each 1d array), from 1 to y
@@ -43,12 +30,13 @@ public class LifeGrid
     this.y = y;
   }
   
-  // main constructor
+  // main constructor 
   LifeGrid(int x, int y, String filename)throws 
         FileNotFoundException, StringIndexOutOfBoundsException
   {
     // define the 2d grid (repetitive, but recursion not allowed in constructors)
     grid = new int[x][y];
+    
     // set dimensions on the object instance
     this.x = x;
     this.y = y;
@@ -57,11 +45,9 @@ public class LifeGrid
     File ipFile = new File(filename);
     try
     {
-      // read from filename into grid, show selection
+      // read from filename into grid
       Scanner s = new Scanner(ipFile);
-      System.out.println("");
-      System.out.println("Input file selected is "+filename);
-    
+     
       for (int i = 0; i < x; i++)
       {
         String str = s.nextLine();
@@ -82,7 +68,7 @@ public class LifeGrid
           // input file missing some chars?
           catch(StringIndexOutOfBoundsException stringIOOBE)
           {
-            System.err.println(stringIOOBE + ": error reading file "+ipFile);
+            System.err.println(stringIOOBE + ": error reading file "+filename);
           }
         } // end for
       } // end for
@@ -150,7 +136,7 @@ public class LifeGrid
   }
   
   // work out no. of neighbours
-  public int neighbours(int x, int y)
+  public int neighbours(int x, int y, int xdim, int ydim)
   {
     int count = 0;
     // Assume Moore's definition of what is a neighbour
@@ -194,19 +180,19 @@ public class LifeGrid
           // ok to count this one!
             count += getCell(xmod, ymod);
         }
-      } 	// end for y
-    } 		// end for x
+      } // end for y
+    } // end for x
 
     return count; 
   } // end method
   
-  public static void run()
+  public static void run(int xdim, int ydim, String filename)
   {
     // run the Game of Life!
     try
     {
       // create a grid object and fill it from the input file
-      LifeGrid aGrid = new LifeGrid(xdim, ydim, ipFile); 
+      LifeGrid aGrid = new LifeGrid(xdim, ydim, filename); 
       aGrid.show();  // generation 0
       
       // create an empty grid object for next generation
@@ -215,7 +201,7 @@ public class LifeGrid
       // manage swapping A <-> B
       boolean swap = true;
       
-      // arbitrary limit to number of generations >>>>>>> parameterise or wait for steady state?!
+      // arbitrary limit to number of generations >>> parameterise or look for steady state?
       int genCount = 0;
       while (genCount < 25)
       {
@@ -227,11 +213,11 @@ public class LifeGrid
             // test which way we are going
             if (swap)
             {
-              bGrid.grid[i][j] = aGrid.nextCell( i, j);
+              bGrid.grid[i][j] = aGrid.nextCell( i, j, xdim, ydim);
             }
             else
             {
-              aGrid.grid[i][j] = bGrid.nextCell( i, j);
+              aGrid.grid[i][j] = bGrid.nextCell( i, j, xdim, ydim);
             }
           } // end for
         } // end for
@@ -252,16 +238,16 @@ public class LifeGrid
     // check for errors reading file
     catch (FileNotFoundException fileNFE)
     {
-      System.err.println(fileNFE + ": error reading file: "+ipFile);
+      System.err.println(fileNFE + ": error reading file: "+filename);
     }
   } // end method
   
-  public int nextCell(int x, int y)
+  public int nextCell(int x, int y, int xdim, int ydim)
   {
     // return the next generation for this cell
     int total = 0;
     // using what Wikipedia calls the scientific observer's viewpoint algorithm 
-    total = getCell(x, y) + neighbours(x, y);
+    total = getCell(x, y) + neighbours(x, y, xdim, ydim);
     
     switch(total)
     {
@@ -276,8 +262,67 @@ public class LifeGrid
   
   public static void main(String[] args)
   {
-    // not much happening here...
-    run();
+      // initialise variables 
+    String filename = "";
+    int xdim = 0;
+    int ydim = 0;
+    
+    // was the starting file passed as a parameter?
+    if (args.length > 0) 
+    {
+      // first arg exists, read as filename
+      filename = args[0];
+      
+    } else {
+      // default input file
+      filename = "glider.txt";
+    }
+    
+    // try reading file and count columns, rows to set grid dimensions
+    File ipFile = new File(filename);
+    try
+    {
+      Scanner s = new Scanner(ipFile);
+      
+      // loop over all rows
+      while (s.hasNextLine())
+      {
+        // count the rows
+        xdim++;
+          
+        // read next line 
+        String str = s.nextLine();
+        // count the columns - allow for uneven length lines by taking shortest 
+        // non-zero value for ydim
+        if (ydim == 0)
+        {
+          ydim = str.length();
+        } else {
+          // keep lowest value
+          if (ydim > str.length())
+          {
+            ydim = str.length();
+          }
+        } // end if/else
+      } // end while x
+      
+      // close the scanner object
+      s.close();
+    } // end try
+    
+    // check for errors finding file
+    catch (FileNotFoundException fileNFE)
+    {
+      System.err.println(fileNFE + ": error finding file "+ipFile);
+    }
+  
+    // print filename and the dimensions we discovered
+    System.out.println("Input file is " + filename +
+          ", number of rows read: " + xdim +
+          ", number of cols read: " + ydim); 
+  
+    // now run the game!
+    run(xdim, ydim, filename);
  
   } // end main
 } // end class
